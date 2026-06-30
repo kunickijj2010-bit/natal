@@ -1272,11 +1272,20 @@
       }
     }
 
-    function setSummaryMode(mode) {
+function setSummaryMode(mode) {
       summaryMode = mode;
       document.getElementById('mode-classic').classList.toggle('active', mode === 'classic');
       document.getElementById('mode-rpg').classList.toggle('active', mode === 'rpg');
-      generateGeneralSummary();
+      if (mainMode === "compatibility") {
+        const p1Name = document.getElementById("p1-name").value || "Партнер 1";
+        const p2Name = document.getElementById("p2-name").value || "Партнер 2";
+        const relType = document.getElementById("relationship-type").value;
+        const p1Gender = document.getElementById("p1-gender").value;
+        const p2Gender = document.getElementById("p2-gender").value;
+        renderCompatSummary(p1Name, p2Name, relType, p1Gender, p2Gender);
+      } else {
+        generateGeneralSummary();
+      }
     }
 
     // ----------------------------------------------------
@@ -1529,6 +1538,21 @@
 
     function toRad(deg) { return (deg * Math.PI) / 180.0; }
     function toDeg(rad) { return (rad * 180.0) / Math.PI; }
+
+    // Global helper for house calculation
+    function getHouseForLon(lon, houses) {
+      let houseNum = 12;
+      for (let h = 1; h <= 11; h++) {
+        const c1 = houses[h];
+        const c2 = houses[h+1];
+        if (c2 > c1) {
+          if (lon >= c1 && lon < c2) { houseNum = h; break; }
+        } else {
+          if (lon >= c1 || lon < c2) { houseNum = h; break; }
+        }
+      }
+      return houseNum;
+    }
 
     // Global states
     let calculatedData = {
@@ -2245,20 +2269,7 @@
             </p>
         `;
 
-        // Helper function inside the scope to find the house for a specific longitude
-        function getHouseForLon(lon, houses) {
-          let houseNum = 12;
-          for (let h = 1; h <= 11; h++) {
-            const c1 = houses[h];
-            const c2 = houses[h+1];
-            if (c2 > c1) {
-              if (lon >= c1 && lon < c2) { houseNum = h; break; }
-            } else {
-              if (lon >= c1 || lon < c2) { houseNum = h; break; }
-            }
-          }
-          return houseNum;
-        }
+
 
         const tSunHouse = getHouseForLon(transitPlanets.Sun, calculatedData.houses);
         const tMarsHouse = getHouseForLon(transitPlanets.Mars, calculatedData.houses);
@@ -3104,24 +3115,58 @@
       box.innerHTML = "";
 
       const score = compatibilityScores.overall;
-      let verdict = "Союз компромиссов";
+      let verdict = "";
       let advice = "";
+      let titleVerdict = "";
 
-      if (score >= 85) {
-        verdict = "💫 Звездный союз (Высокая гармония)";
-        advice = `Связь между ${p1Name} и ${p2Name} наполнена космическим согласием. Вы отлично дополняете друг друга, интуитивно понимаете желания партнера и способны создать прочную, гармоничную связь.`;
-      } else if (score >= 70) {
-        verdict = "💞 Хорошая совместимость";
-        advice = `У вас высокий уровень взаимопонимания. Вы с легкостью находите компромиссы и точки соприкосновения. Мелкие разногласия лишь добавляют интереса отношениям, не разрушая их глубины.`;
-      } else if (score >= 50) {
-        verdict = "🤝 Союз компромиссов";
-        advice = `Для гармонии в паре потребуется осознанная работа. Вы разные люди, и ваши привычки часто вступают в противоречие. Однако при наличии уважения и терпения вы сможете многому научить друг друга.`;
-      } else {
-        verdict = "⚡ Кармическое испытание";
-        advice = `Ваш союз наполнен острыми углами и противоречиями. Вы притягиваетесь друг к другу как плюс и минус, но совместное нахождение требует огромной работы над эго. Отношения могут стать мощным стимулом духовного роста.`;
+      // Labels based on mode (Classic vs RPG)
+      let labelLove = "❤️ Страсть";
+      let labelEmotions = "🌙 Эмпатия";
+      let labelIntellect = "💬 Общение";
+      let labelStability = "🔒 Прочность";
+
+      if (summaryMode === "rpg") {
+        labelLove = "🔥 Синергия страсти";
+        labelEmotions = "🌙 Резонанс маны";
+        labelIntellect = "💬 Общий чат";
+        labelStability = "🛡️ Прочность щита";
+        titleVerdict = "⚔️ Отчет боевой сыгранности";
+
+        if (score >= 85) {
+          verdict = "⚔️ Легендарный союз (Сыгранность: 5/5)";
+          advice = `Поздравляем! Отношения ${p1Name} и ${p2Name} — это эпический союз с максимальной синергией. Ваши совместные баффы перекрывают любые дебаффы. Вы легко проходите любые совместные квесты, а ваша сыгранность идеальна для долгой игры.`;
+        } else if (score >= 70) {
+          verdict = "🛡️ Сбалансированная пати (Сыгранность: 4/5)";
+          advice = `Ваша пати отлично сбалансирована. Вы хорошо распределяете роли (танк, дд, хил), быстро кооперируетесь в опасных зонах и умеете слушать сигналы друг друга. Отличный потенциал для совместного рейдинга.`;
+        } else if (score >= 50) {
+          verdict = "🔮 Хаотичная связка (Сыгранность: 3/5)";
+          advice = `Ваша связка нестабильна и полна рандомного дропа. Время от времени вы выдаете отличные криты взаимопонимания, но в сложных данжах часто путаете кнопки и мешаете друг другу. Требуется прокачка навыка 'Терпение'.`;
+        } else {
+          verdict = "⚡ Агро-пати (Требует баффов!)";
+          advice = `Повышенный уровень агро в группе! Вы постоянно перехватываете инициативу, что приводит к вайпам в спорах. Чтобы выжить в одном рейде, вам обоим нужно сбросить эго и использовать свитки примирения.`;
+        }
+      } else { // Classic
+        labelLove = "❤️ Страсть";
+        labelEmotions = "🌙 Эмпатия";
+        labelIntellect = "💬 Общение";
+        labelStability = "🔒 Прочность";
+        titleVerdict = "📜 Астрологический вердикт";
+
+        if (score >= 85) {
+          verdict = "💫 Звездный союз (Высокая гармония)";
+          advice = `Связь между ${p1Name} и ${p2Name} наполнена космическим согласием. Вы отлично дополняете друг друга, интуитивно понимаете желания партнера и способны создать прочную, гармоничную и вдохновляющую связь на долгие годы.`;
+        } else if (score >= 70) {
+          verdict = "💞 Хорошая совместимость";
+          advice = `У вас высокий уровень взаимопонимания и психологического комфорта. Вы с легкостью находите компромиссы и общие темы. Мелкие разногласия лишь добавляют интереса отношениям, не разрушая их глубины.`;
+        } else if (score >= 50) {
+          verdict = "🤝 Союз компромиссов";
+          advice = `Для гармонии в паре потребуется осознанная работа. Вы разные люди, и ваши повседневные привычки часто вступают в противоречие. Однако при наличии уважения и терпения вы сможете многому научить друг друга.`;
+        } else {
+          verdict = "⚡ Кармическое испытание";
+          advice = `Ваш союз наполнен острыми углами и противоречиями. Вы притягиваетесь друг к другу как плюс и минус, но совместное проживание требует огромной работы над эго. Отношения могут стать мощным стимулом духовного роста.`;
+        }
       }
 
-      // Gender dynamic grammar
       let relLabel = "отношений";
       if (relType === "love") relLabel = "любви и брака";
       else if (relType === "friendship") relLabel = "дружбы";
@@ -3145,7 +3190,7 @@
               </svg>
               <div class="score-value">${compatibilityScores.love}%</div>
             </div>
-            <div class="compat-score-label">❤️ Страсть</div>
+            <div class="compat-score-label">${labelLove}</div>
           </div>
           <div class="compat-score-card">
             <div class="compat-score-circle">
@@ -3155,7 +3200,7 @@
               </svg>
               <div class="score-value">${compatibilityScores.emotions}%</div>
             </div>
-            <div class="compat-score-label">🌙 Эмпатия</div>
+            <div class="compat-score-label">${labelEmotions}</div>
           </div>
           <div class="compat-score-card">
             <div class="compat-score-circle">
@@ -3165,7 +3210,7 @@
               </svg>
               <div class="score-value">${compatibilityScores.intellect}%</div>
             </div>
-            <div class="compat-score-label">💬 Общение</div>
+            <div class="compat-score-label">${labelIntellect}</div>
           </div>
           <div class="compat-score-card">
             <div class="compat-score-circle">
@@ -3175,12 +3220,12 @@
               </svg>
               <div class="score-value">${compatibilityScores.stability}%</div>
             </div>
-            <div class="compat-score-label">🔒 Прочность</div>
+            <div class="compat-score-label">${labelStability}</div>
           </div>
         </div>
 
         <div style="background: rgba(255,255,255,0.02); padding: 1.2rem; border-radius: 15px; border: 1px solid rgba(255,255,255,0.05); font-size: 0.95rem; line-height: 1.6;">
-          <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.1rem; color: var(--accent-gold); margin-bottom: 0.6rem;">📜 Астрологический вердикт</h3>
+          <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.1rem; color: var(--accent-gold); margin-bottom: 0.6rem;">${titleVerdict}</h3>
           <p>${advice}</p>
         </div>
       `;
@@ -3236,7 +3281,7 @@
 
       let html = `
         <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.1rem; color: var(--accent-gold); margin-bottom: 0.8rem;">🎭 Соотношение стихий партнеров</h3>
-        <div style="display: flex; flex-direction: column; gap: 1rem;">
+        <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem;">
       `;
 
       elementsList.forEach(el => {
@@ -3265,6 +3310,64 @@
         `;
       });
       html += `</div>`;
+
+      // Find dominant elements
+      let maxEl1 = "Fire";
+      let maxVal1 = -1;
+      let maxEl2 = "Fire";
+      let maxVal2 = -1;
+      
+      elementsList.forEach(el => {
+        if (e1[el.key] > maxVal1) { maxVal1 = e1[el.key]; maxEl1 = el.key; }
+        if (e2[el.key] > maxVal2) { maxVal2 = e2[el.key]; maxEl2 = el.key; }
+      });
+
+      const elementNamesRu = {
+        Fire: "Огня",
+        Earth: "Земли",
+        Air: "Воздуха",
+        Water: "Воды"
+      };
+
+      let compatibilityComment = "";
+      if (maxEl1 === maxEl2) {
+        if (maxEl1 === "Fire") {
+          compatibilityComment = "У вас обоих преобладает стихия <strong>Огня</strong>. Это союз высокой страсти, активности и общих амбициозных целей. Однако двум лидерам может быть трудно делить авторитет, берегите союз от эмоционального выгорания и вспыльчивости.";
+        } else if (maxEl1 === "Earth") {
+          compatibilityComment = "У вас обоих преобладает стихия <strong>Земли</strong>. Надежный, стабильный, практичный и долговечный союз. Вы оба цените комфорт и материальную безопасность. Слабая сторона — риск погрязнуть в излишней рутине и консерватизме.";
+        } else if (maxEl1 === "Air") {
+          compatibilityComment = "У вас обоих преобладает стихия <strong>Воздуха</strong>. Прекрасная интеллектуальная связь, совместные поездки, бесконечные разговоры и общие друзья. Вы даете друг другу свободу, но отношениям может не хватать заземленности и эмоциональности.";
+        } else { // Water
+          compatibilityComment = "У вас обоих преобладает стихия <strong>Воды</strong>. Невероятный уровень эмпатии, эмоциональной близости и понимания без слов. Вы тонко чувствуете друг друга. Но остерегайтесь взаимных обид, мнительности и чрезмерной драматизации мелочей.";
+        }
+      } else {
+        // Different elements
+        const key = `${maxEl1}_${maxEl2}`;
+        const keyAlt = `${maxEl2}_${maxEl1}`;
+        
+        if (key === "Fire_Air" || keyAlt === "Fire_Air") {
+          compatibilityComment = "Сочетание стихий <strong>Огня и Воздуха</strong>. Воздух раздувает пламя Огня, вдохновляя его на новые свершения, а Огонь согревает и заряжает Воздух. Вы отлично дополняете друг друга, это союз энтузиазма, генерации идей и постоянного движения.";
+        } else if (key === "Earth_Water" || keyAlt === "Earth_Water") {
+          compatibilityComment = "Сочетание стихий <strong>Земли и Воды</strong>. Идеальный союз. Вода питает Землю, делая ее плодородной (приносит эмоции и заботу), а Земля структурирует Воду, создавая надежный берег и безопасность. Это очень стабильные, глубокие и надежные отношения.";
+        } else if (key === "Fire_Water" || keyAlt === "Fire_Water") {
+          compatibilityComment = "Сочетание стихий <strong>Огня и Воды</strong>. Бурный и сложный союз. Огонь испаряет Воду своим напором, а Вода может загасить Огонь эмоциональной холодностью или обидами. Вам нужно много терпения, чтобы научиться бережно относиться к чувствам друг друга.";
+        } else if (key === "Fire_Earth" || keyAlt === "Fire_Earth") {
+          compatibilityComment = "Сочетание стихий <strong>Огня и Земли</strong>. Огонь приносит страсть и инициативу, а Земля — практическую реализацию и стабильность. Огонь может казаться Земле слишком хаотичным, а Земля Огню — слишком медлительной и упрямой.";
+        } else if (key === "Air_Water" || keyAlt === "Air_Water") {
+          compatibilityComment = "Сочетание стихий <strong>Воздуха и Воды</strong>. Воздух пытается логически понять Воду, а Вода ищет эмоциональной глубины, которой Воздуху может не хватать. Вам нужно учиться совмещать холодную логику с чуткостью.";
+        } else if (key === "Air_Earth" || keyAlt === "Air_Earth") {
+          compatibilityComment = "Сочетание стихий <strong>Воздуха и Земли</strong>. Ментальный Воздух витает в облаках идей и планов, а практичная Земля стоит на почве фактов. Вам может быть трудно понять друг друга, но вместе вы способны превратить любую идею в материальный результат.";
+        }
+      }
+
+      html += `
+        <div style="background: rgba(255,255,255,0.02); padding: 1.2rem; border-radius: 15px; border: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; line-height: 1.6; color: var(--text-muted); margin-top: 1rem;">
+          <h4 style="color: var(--accent-cyan); font-family: 'Outfit', sans-serif; margin-bottom: 0.5rem; font-size: 0.95rem;">📢 Анализ стихийного баланса</h4>
+          Ведущая стихия у <strong>${p1Name}</strong> — <strong>${elementNamesRu[maxEl1] || maxEl1}</strong>, а у <strong>${p2Name}</strong> — <strong>${elementNamesRu[maxEl2] || maxEl2}</strong>.<br/><br/>
+          ${compatibilityComment}
+        </div>
+      `;
+
       elDiv.innerHTML = html;
       parent.appendChild(elDiv);
     }
