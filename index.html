@@ -3368,7 +3368,7 @@ function setSummaryMode(mode) {
           advice = `Для гармонии в паре потребуется осознанная работа. Вы разные люди, и ваши повседневные привычки часто вступают в противоречие. Однако при наличии уважения и терпения вы сможете многому научить друг друга.`;
         } else {
           verdict = "⚡ Кармическое испытание";
-          advice = `Ваш союз наполнен острыми углами и противоречиями. Вы притягиваетесь друг к другу как плюс и минус, но совместное проживание требует огромной работы над эго. Отношения могут стать мощным стимулом духовного роста.`;
+          advice = `Ваш союз наводнен острыми углами и противоречиями. Вы притягиваетесь друг к другу как плюс и минус, но совместное проживание требует огромной работы над эго. Отношения могут стать мощным стимулом духовного роста.`;
         }
       }
 
@@ -3392,7 +3392,18 @@ function setSummaryMode(mode) {
             if (aspectDb && typeof aspectDb === "object") {
               consText = aspectDb.cons;
             } else {
-              consText = `Возможное соперничество, споры и борьба за лидерство по функциям планет ${p1Ru} и ${p2Ru}.`;
+              // Dynamic risk fallback generator
+              if (aspect.p1 === "Saturn" || aspect.p2 === "Saturn") {
+                consText = "Ограничение свободы и критика. Один из партнеров может выступать в роли строгого судьи, вызывая чувство вины.";
+              } else if (aspect.p1 === "Mars" || aspect.p2 === "Mars") {
+                consText = "Вспышки раздражительности и агрессии. Резкие слова или поспешные действия ранят чувства партнера.";
+              } else if (aspect.p1 === "Pluto" || aspect.p2 === "Pluto") {
+                consText = "Ревность и стремление контролировать. Психологическое давление и манипуляции мешают открытому диалогу.";
+              } else if (aspect.p1 === "Neptune" || aspect.p2 === "Neptune") {
+                consText = "Иллюзии и недомолвки. Склонность идеализировать друг друга, что ведет к обидам при столкновении с реальностью.";
+              } else {
+                consText = `Борьба характеров и эго по функциям планет ${p1Ru} и ${p2Ru}. Спорные ситуации мешают согласию.`;
+              }
             }
             risksHtml += `
               <div style="border-left: 3px solid var(--aspect-tense); padding-left: 0.8rem; margin-bottom: 0.8rem;">
@@ -3409,7 +3420,9 @@ function setSummaryMode(mode) {
         risksHtml = `<p style="font-size: 0.85rem; color: var(--aspect-harmonic);">☀️ Серьезных аспектных конфликтов не обнаружено. Отношения имеют хороший гармоничный потенциал.</p>`;
       }
 
+      // WRAP ALL ELEMENTS IN A SINGLE ROOT DIV TO FIX THE createElementFromHTML div.firstChild BUG!
       const html = `
+      <div style="display: flex; flex-direction: column; gap: 1.2rem;">
         <div class="overall-compat-banner">
           <div class="overall-compat-value">${score}%</div>
           <div class="overall-compat-verdict">${verdict}</div>
@@ -3461,7 +3474,7 @@ function setSummaryMode(mode) {
           </div>
         </div>
 
-        <div style="background: rgba(255,255,255,0.02); padding: 1.2rem; border-radius: 15px; border: 1px solid rgba(255,255,255,0.05); font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.2rem;">
+        <div style="background: rgba(255,255,255,0.02); padding: 1.2rem; border-radius: 15px; border: 1px solid rgba(255,255,255,0.05); font-size: 0.95rem; line-height: 1.6;">
           <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.1rem; color: var(--accent-gold); margin-bottom: 0.6rem;">${titleVerdict}</h3>
           <p>${advice}</p>
         </div>
@@ -3470,6 +3483,7 @@ function setSummaryMode(mode) {
           <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.1rem; color: var(--aspect-tense); margin-bottom: 0.6rem;">⚠️ Зоны риска и потенциальные конфликты</h3>
           ${risksHtml}
         </div>
+      </div>
       `;
       box.appendChild(createElementFromHTML(html));
     }
@@ -3753,10 +3767,67 @@ function setSummaryMode(mode) {
         text = dbEntry[relType] || dbEntry.love;
         consText = dbEntry.cons || "";
       } else {
-        const p1Def = p1Name + " (Партнер 1)";
-        const p2Def = p2Name + " (Партнер 2)";
-        text = `Аспект синастрии связывает ${p1Def} и ${p2Def}. Это положение дает взаимное влияние в делах общения, чувств и понимания качеств данных планет.`;
-        consText = `Возможны споры и борьба за лидерство по функциям планет.`;
+        // Dynamic Fallback Interpretation Generator
+        const PLANET_KEYWORDS = {
+          Sun: { name: "Солнце", theme: "сознательное эго, лидерство и жизненную энергию", keyword: "сознательное Я" },
+          Moon: { name: "Луну", theme: "эмоции, душевный покой и бытовые привычки", keyword: "подсознание" },
+          Mercury: { name: "Меркурий", theme: "мышление, речь и обмен информацией", keyword: "интеллект" },
+          Venus: { name: "Венеру", theme: "любовь, чувства, финансы и эстетические вкусы", keyword: "чувственность" },
+          Mars: { name: "Марс", theme: "активность, волю, импульсивность и напор", keyword: "действие" },
+          Jupiter: { name: "Юпитер", theme: "успех, авторитет, щедрость и расширение возможностей", keyword: "удачу" },
+          Saturn: { name: "Сатурн", theme: "долг, порядок, ограничения и жизненные уроки", keyword: "дисциплину" },
+          Uranus: { name: "Уран", theme: "свободу, озарения, неожиданности и оригинальность", keyword: "непредсказуемость" },
+          Neptune: { name: "Нептун", theme: "интуицию, мечты, тайны и творческое вдохновение", keyword: "иллюзии" },
+          Pluto: { name: "Плутон", theme: "трансформации, глубинную власть, ревность и контроль", keyword: "власть" }
+        };
+
+        const p1Info = PLANET_KEYWORDS[aspect.p1] || { name: aspect.p1, theme: "энергию планеты" };
+        const p2Info = PLANET_KEYWORDS[aspect.p2] || { name: aspect.p2, theme: "энергию планеты" };
+
+        const outerPlanets = ["Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
+        const isOuterGeneration = outerPlanets.includes(aspect.p1) && outerPlanets.includes(aspect.p2) && (aspect.p1 === aspect.p2);
+
+        if (isOuterGeneration) {
+          text = `Это соединение высших планет ${p1Info.name} — поколенческий аспект. Так как вы ровесники (или близки по возрасту), это положение означает общие идеалы вашего поколения, схожие коллективные мечты, культурные вкусы и отношение к глобальным процессам.`;
+          consText = `Поскольку вы мыслите схожими шаблонами своего поколения, вы можете удваивать коллективные заблуждения и иллюзии по функциям данной планеты, отрываясь от практических земных дел.`;
+        } else {
+          // General dynamic aspect generator
+          if (aspect.badge === "harmonic") {
+            // Harmonic: trine, sextile
+            if (relType === "love") {
+              text = `Благоприятный поток энергии между ${p1Info.name} Партнера 1 и ${p2Info.name} Партнера 2. Это положение дарует взаимную гармонию и поддержку в паре. Ваши качества не вступают в конфликт, а мягко дополняют друг друга.`;
+            } else if (relType === "friendship") {
+              text = `Прекрасный аспект для дружбы. Вы испытываете взаимную симпатию, вам легко общаться, делиться интересами и выручать друг друга в повседневных делах.`;
+            } else { // business
+              text = `Конструктивное партнерское сочетание. Ваши рабочие методы хорошо согласуются, вы эффективно распределяете задачи и доверяете профессионализму партнера.`;
+            }
+            consText = `Особых рисков нет. Однако из-за высокого уровня комфорта вы можете избегать обсуждения назревших проблем, предпочитая иллюзию мира.`;
+          } else {
+            // Tense: square, opposition, tense conjunctions
+            if (relType === "love") {
+              text = `Напряженный аспект между ${p1Info.name} (Партнер 1) и ${p2Info.name} (Партнер 2). Это положение рождает сильное взаимное притяжение в любви, но одновременно провоцирует частые эмоциональные столкновения.`;
+            } else if (relType === "friendship") {
+              text = `Периодические трения и споры. Ваше самовыражение и привычки могут задевать или раздражать друга, требуются усилия для поиска общего языка.`;
+            } else { // business
+              text = `Сложное деловое сотрудничество. Возникает частая борьба за авторитет, несогласованность действий или споры о финансовых вопросах.`;
+            }
+
+            // Tailor the cons based on the planet types
+            if (aspect.p1 === "Saturn" || aspect.p2 === "Saturn") {
+              consText = `Сатурнианский холод. Один из партнеров может критиковать, ограничивать свободу или проявлять эмоциональную отстраненность, заставляя другого чувствовать себя недооцененным.`;
+            } else if (aspect.p1 === "Mars" || aspect.p2 === "Mars") {
+              consText = `Импульсивность и агрессия. Резкие слова или поспешные действия марсианского партнера ранят чувства другого, провоцируя бурные конфликты.`;
+            } else if (aspect.p1 === "Pluto" || aspect.p2 === "Pluto") {
+              consText = `Манипуляции и контроль. Опасность ревности, психологического давления или попыток полностью подчинить себе волю партнера.`;
+            } else if (aspect.p1 === "Neptune" || aspect.p2 === "Neptune") {
+              consText = `Иллюзии и недомолвки. Склонность идеализировать партнера, что ведет к сильным обидам при столкновении с реальностью.`;
+            } else if (aspect.p1 === "Uranus" || aspect.p2 === "Uranus") {
+              consText = `Непредсказуемость. Внезапные перепады настроения или резкое желание независимости расшатывают связь.`;
+            } else {
+              consText = `Борьба эго. Несовпадение мнений по функциям планет ${p1Name} и ${p2Name}, нежелание уступать друг другу.`;
+            }
+          }
+        }
       }
 
       const body = `
