@@ -3377,7 +3377,47 @@ function setSummaryMode(mode) {
       else if (relType === "friendship") relLabel = "дружбы";
       else if (relType === "business") relLabel = "делового сотрудничества";
 
-      // Cons / Risks analysis
+      // 1. Strengths and anchors analysis
+      let strengthsHtml = "";
+      let strengthCount = 0;
+      
+      compatibilityAspects.forEach(aspect => {
+        if (aspect.badge === "harmonic" || (aspect.type === "conjunction" && (aspect.p1 !== "Saturn" && aspect.p2 !== "Saturn" && aspect.p1 !== "Pluto" && aspect.p2 !== "Pluto"))) {
+          if (strengthCount < 3) {
+            const p1Ru = PLANET_NAMES[aspect.p1];
+            const p2Ru = PLANET_NAMES[aspect.p2];
+            let strongText = "";
+            
+            if ((aspect.p1 === "Venus" && aspect.p2 === "Mars") || (aspect.p1 === "Mars" && aspect.p2 === "Venus")) {
+              strongText = "Романтическое и физическое притяжение. Сильный взаимный интерес, который оживляет союз.";
+            } else if ((aspect.p1 === "Sun" && aspect.p2 === "Moon") || (aspect.p1 === "Moon" && aspect.p2 === "Sun")) {
+              strongText = "Душевное согласие и гармония характеров. Вы легко поддерживаете друг друга и чувствуете себя семьей.";
+            } else if (aspect.p1 === "Mercury" && aspect.p2 === "Mercury") {
+              strongText = "Отличное интеллектуальное взаимопонимание. Общие темы, книги и отсутствие секретов.";
+            } else if (aspect.p1 === "Jupiter" || aspect.p2 === "Jupiter") {
+              strongText = "Взаимная поддержка и щедрость. Вы приносите друг другу удачу и помогаете расширять кругозор.";
+            } else if (aspect.p1 === "Saturn" || aspect.p2 === "Saturn") {
+              strongText = "Надежность и ответственность. Аспект Сатурна связывает вас чувством долга и гарантирует стабильность.";
+            } else {
+              strongText = `Гармоничный обмен энергиями между планетами ${p1Ru} и ${p2Ru}, сглаживающий бытовые углы.`;
+            }
+
+            strengthsHtml += `
+              <div style="border-left: 3px solid var(--aspect-harmonic); padding-left: 0.8rem; margin-bottom: 0.8rem;">
+                <strong style="color: var(--aspect-harmonic); font-size: 0.9rem;">🌟 ${PLANET_GLYPHS[aspect.p1]} ${p1Ru} в ${aspect.label} к ${PLANET_GLYPHS[aspect.p2]} ${p2Ru}:</strong>
+                <p style="font-size: 0.85rem; line-height: 1.5; color: var(--text-muted); margin-top: 0.2rem;">${strongText}</p>
+              </div>
+            `;
+            strengthCount++;
+          }
+        }
+      });
+
+      if (!strengthsHtml) {
+        strengthsHtml = `<p style="font-size: 0.85rem; color: var(--text-muted);">Заметных гармоничных аспектов планет не обнаружено, союз опирается на баланс стихий и взаимную сознательную работу.</p>`;
+      }
+
+      // 2. Cons / Risks analysis
       let risksHtml = "";
       let riskCount = 0;
       
@@ -3396,7 +3436,7 @@ function setSummaryMode(mode) {
               if (aspect.p1 === "Saturn" || aspect.p2 === "Saturn") {
                 consText = "Ограничение свободы и критика. Один из партнеров может выступать в роли строгого судьи, вызывая чувство вины.";
               } else if (aspect.p1 === "Mars" || aspect.p2 === "Mars") {
-                consText = "Вспышки раздражительности и агрессии. Резкие слова или поспешные действия ранят чувства партнера.";
+                consText = "Вспышки раздражительности и агрессии. Резкие слова или поспешные действия марсианского партнера ранят чувства партнера.";
               } else if (aspect.p1 === "Pluto" || aspect.p2 === "Pluto") {
                 consText = "Ревность и стремление контролировать. Психологическое давление и манипуляции мешают открытому диалогу.";
               } else if (aspect.p1 === "Neptune" || aspect.p2 === "Neptune") {
@@ -3419,6 +3459,25 @@ function setSummaryMode(mode) {
       if (!risksHtml) {
         risksHtml = `<p style="font-size: 0.85rem; color: var(--aspect-harmonic);">☀️ Серьезных аспектных конфликтов не обнаружено. Отношения имеют хороший гармоничный потенциал.</p>`;
       }
+
+      // 3. Dynamic actionable recommendations
+      let recommendationsHtml = `<ul style="margin: 0; padding-left: 1.2rem; font-size: 0.85rem; line-height: 1.6; color: var(--text-muted); display: flex; flex-direction: column; gap: 0.5rem;">`;
+      if (compatibilityScores.love < 65) {
+        recommendationsHtml += `<li>💖 <strong>Прокачка Страсти:</strong> Добавьте романтики в серые будни. Устраивайте свидания без обсуждения домашних дел и работы.</li>`;
+      }
+      if (compatibilityScores.emotions < 65) {
+        recommendationsHtml += `<li>🌙 <strong>Прокачка Эмпатии:</strong> Больше делитесь внутренними чувствами и страхами. Не закрывайтесь от партнера эмоциональной стеной.</li>`;
+      }
+      if (compatibilityScores.intellect < 65) {
+        recommendationsHtml += `<li>💬 <strong>Прокачка Общения:</strong> Найдите общие интересы, смотрите вместе кино, читайте одни книги и учитесь слушать аргументы другого без критики.</li>`;
+      }
+      if (compatibilityScores.stability < 65) {
+        recommendationsHtml += `<li>🛡️ <strong>Прокачка Прочности:</strong> Четко распределите финансовые траты и бытовые обязанности. Хаос в этих вопросах — главный риск разрыва.</li>`;
+      }
+      if (compatibilityScores.love >= 65 && compatibilityScores.emotions >= 65 && compatibilityScores.intellect >= 65 && compatibilityScores.stability >= 65) {
+        recommendationsHtml += `<li>✨ <strong>Отличный баланс!</strong> Особых зон дефицита не обнаружено. Продолжайте поддерживать взаимное уважение и ценить уникальность друг друга.</li>`;
+      }
+      recommendationsHtml += `</ul>`;
 
       // WRAP ALL ELEMENTS IN A SINGLE ROOT DIV TO FIX THE createElementFromHTML div.firstChild BUG!
       const html = `
@@ -3479,9 +3538,21 @@ function setSummaryMode(mode) {
           <p>${advice}</p>
         </div>
 
+        <!-- NEW SECTION: STRENGTHS AND ANCHORS -->
+        <div style="background: rgba(16, 185, 129, 0.02); padding: 1.2rem; border-radius: 15px; border: 1px solid rgba(16, 185, 129, 0.08); font-size: 0.95rem; line-height: 1.6;">
+          <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.1rem; color: var(--aspect-harmonic); margin-bottom: 0.6rem;">🌟 Главные точки опоры союза</h3>
+          ${strengthsHtml}
+        </div>
+
         <div style="background: rgba(239, 68, 68, 0.02); padding: 1.2rem; border-radius: 15px; border: 1px solid rgba(239, 68, 68, 0.08); font-size: 0.95rem; line-height: 1.6;">
           <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.1rem; color: var(--aspect-tense); margin-bottom: 0.6rem;">⚠️ Зоны риска и потенциальные конфликты</h3>
           ${risksHtml}
+        </div>
+
+        <!-- NEW SECTION: PRACTICAL RECOMMENDATIONS -->
+        <div style="background: rgba(99, 102, 241, 0.02); padding: 1.2rem; border-radius: 15px; border: 1px solid rgba(99, 102, 241, 0.08); font-size: 0.95rem; line-height: 1.6;">
+          <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.1rem; color: var(--accent-cyan); margin-bottom: 0.6rem;">💡 Рекомендации по гармонизации</h3>
+          ${recommendationsHtml}
         </div>
       </div>
       `;
