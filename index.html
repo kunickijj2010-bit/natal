@@ -3757,23 +3757,33 @@ function setSummaryMode(mode) {
       detailedElementsHtml += `</div>`;
       html += detailedElementsHtml;
 
-      // Find dominant elements summary
-      let maxEl1 = "Fire";
-      let maxVal1 = -1;
-      let maxEl2 = "Fire";
-      let maxVal2 = -1;
-      
-      elementsList.forEach(el => {
-        if (e1[el.key] > maxVal1) { maxVal1 = e1[el.key]; maxEl1 = el.key; }
-        if (e2[el.key] > maxVal2) { maxVal2 = e2[el.key]; maxEl2 = el.key; }
-      });
+      // Find dominant elements (handles ties / equal percentages)
+      const maxVal1 = Math.max(e1.Fire, e1.Earth, e1.Air, e1.Water);
+      const maxVal2 = Math.max(e2.Fire, e2.Earth, e2.Air, e2.Water);
+
+      const dom1 = Object.keys(e1).filter(k => e1[k] === maxVal1);
+      const dom2 = Object.keys(e2).filter(k => e2[k] === maxVal2);
 
       const elementNamesRu = {
+        Fire: "Огонь",
+        Earth: "Земля",
+        Air: "Воздух",
+        Water: "Вода"
+      };
+
+      const elementNamesGenitiveRu = {
         Fire: "Огня",
         Earth: "Земли",
         Air: "Воздуха",
         Water: "Воды"
       };
+
+      const dom1Names = dom1.map(k => elementNamesRu[k]).join(" и ");
+      const dom2Names = dom2.map(k => elementNamesRu[k]).join(" и ");
+
+      // Use the first dominant elements to generate fallback synergy description
+      const maxEl1 = dom1[0];
+      const maxEl2 = dom2[0];
 
       let compatibilityComment = "";
       if (maxEl1 === maxEl2) {
@@ -3809,11 +3819,10 @@ function setSummaryMode(mode) {
       html += `
         <div style="background: rgba(255,255,255,0.02); padding: 1.2rem; border-radius: 15px; border: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; line-height: 1.6; color: var(--text-muted); margin-top: 1rem;">
           <h4 style="color: var(--accent-cyan); font-family: 'Outfit', sans-serif; margin-bottom: 0.5rem; font-size: 0.95rem;">🎯 Итоговый синергетический вывод</h4>
-          Ведущая стихия у <strong>${p1Name}</strong> — <strong>${elementNamesRu[maxEl1] || maxEl1}</strong>, а у <strong>${p2Name}</strong> — <strong>${elementNamesRu[maxEl2] || maxEl2}</strong>.<br/><br/>
+          Ведущая стихия у <strong>${p1Name}</strong> — <strong>${dom1Names}</strong>, а у <strong>${p2Name}</strong> — <strong>${dom2Names}</strong>.<br/><br/>
           ${compatibilityComment}
         </div>
       `;
-
       elDiv.innerHTML = html;
       parent.appendChild(elDiv);
     }
