@@ -3567,7 +3567,68 @@ function setSummaryMode(mode) {
       });
       html += `</div>`;
 
-      // Find dominant elements
+      // Detailed Multi-Dimensional Elements Comparison
+      let detailedElementsHtml = `
+        <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.1rem; color: var(--accent-gold); margin-top: 1rem; margin-bottom: 0.8rem;">📢 Детальный анализ стихийного баланса</h3>
+        <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+      `;
+
+      // 1. Fire
+      let fireComment = "";
+      if (e1.Fire >= 30 && e2.Fire >= 30) {
+        fireComment = "🔥 <strong>Огонь: Сильное взаимное притяжение и страсть.</strong> Вы оба обладаете высокой инициативой, волей и стремлением к лидерству. Совместные дела и страсть разгораются быстро. Однако помните о риске вспыльчивости и борьбы за авторитет в паре.";
+      } else if ((e1.Fire >= 30 && e2.Fire <= 15) || (e2.Fire >= 30 && e1.Fire <= 15)) {
+        fireComment = `🔥 <strong>Огонь: Ведущий и ведомый.</strong> Один из партнеров выступает вечным двигателем и генератором энергии, а второму может не хватать темпа или он будет играть роль остужающего якоря. Важно не перегружать партнера своей активностью.`;
+      } else if (e1.Fire <= 15 && e2.Fire <= 15) {
+        fireComment = "🔥 <strong>Огонь: Нехватка динамики.</strong> В отношениях может недоставать спонтанности, азарта и огонька. Дела могут откладываться из-за отсутствия лидера. Вам нужно сознательно добавлять новые яркие хобби в совместную жизнь.";
+      } else {
+        fireComment = "🔥 <strong>Огонь: Умеренная активность.</strong> У вас комфортный уровень энергии. Вы способны проявлять инициативу и поддерживать интерес друг к другу без лишнего давления и эмоционального выгорания.";
+      }
+      detailedElementsHtml += `<div style="background: rgba(255,255,255,0.02); padding: 0.9rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.04); font-size: 0.85rem; line-height: 1.5; color: var(--text-muted);">${fireComment}</div>`;
+
+      // 2. Earth
+      let earthComment = "";
+      if (e1.Earth >= 30 && e2.Earth >= 30) {
+        earthComment = "🌱 <strong>Земля: Мощный фундамент стабильности.</strong> Вы оба цените комфорт, практичность, финансовую надежность и конкретные результаты. Это превосходный базис для крепкой семьи и ведения общего бюджета, но есть риск застрять в рутине.";
+      } else if ((e1.Earth >= 30 && e2.Earth <= 15) || (e2.Earth >= 30 && e1.Earth <= 15)) {
+        earthComment = "🌱 <strong>Земля: Прагматик и мечтатель.</strong> Один партнер организует быт, порядок и решает материальные задачи, в то время как второй витает в облаках. Первому партнер может казаться легкомысленным, а второму первый — слишком скучным.";
+      } else if (e1.Earth <= 15 && e2.Earth <= 15) {
+        earthComment = "🌱 <strong>Земля: Дефицит заземленности.</strong> Решение бытовых дел, уборка и планирование финансов могут вызывать у вас сложности. Отношениям не хватает прочности и практической направленности, старайтесь делегировать или жестко планировать быт.";
+      } else {
+        earthComment = "🌱 <strong>Земля: Разумный прагматизм.</strong> Спокойное и реалистичное отношение к материальной стороне жизни. Вы умеете решать хозяйственные вопросы без зацикленности на вещах.";
+      }
+      detailedElementsHtml += `<div style="background: rgba(255,255,255,0.02); padding: 0.9rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.04); font-size: 0.85rem; line-height: 1.5; color: var(--text-muted);">${earthComment}</div>`;
+
+      // 3. Air
+      let airComment = "";
+      if (e1.Air >= 30 && e2.Air >= 30) {
+        airComment = "💨 <strong>Воздух: Отличная интеллектуальная связь.</strong> Вы великолепные собеседники, понимающие друг друга с полуслова. Совместные поездки, общие друзья и бесконечные разговоры. Риск — поверхностность отношений и уход от решения чувственных проблем.";
+      } else if ((e1.Air >= 30 && e2.Air <= 15) || (e2.Air >= 30 && e1.Air <= 15)) {
+        airComment = "💨 <strong>Воздух: Разный интеллектуальный ритм.</strong> Одному из вас жизненно необходимо постоянно обсуждать идеи, обмениваться новостями и разговаривать, тогда как второй предпочитает тишину или скрывает мысли, что может порождать обиды.";
+      } else if (e1.Air <= 15 && e2.Air <= 15) {
+        airComment = "💨 <strong>Воздух: Трудности коммуникации.</strong> Вам может быть сложно выразить словами свои переживания и договориться. Разногласия замалчиваются, накапливаясь внутри. Учитесь спокойно вести диалог, не замыкаясь в себе.";
+      } else {
+        airComment = "💨 <strong>Воздух: Легкое и понятное общение.</strong> Хороший уровень диалога. Вы всегда найдете интересную тему для обсуждения и сможете прийти к согласию без долгих дебатов.";
+      }
+      detailedElementsHtml += `<div style="background: rgba(255,255,255,0.02); padding: 0.9rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.04); font-size: 0.85rem; line-height: 1.5; color: var(--text-muted);">${airComment}</div>`;
+
+      // 4. Water
+      let waterComment = "";
+      if (e1.Water >= 30 && e2.Water >= 30) {
+        waterComment = "💧 <strong>Вода: Глубокое эмоциональное слияние.</strong> Вы чувствуете настроение партнера без слов. Огромная эмпатия, романтика и душевная близость. Но берегите союз: малейшая обида может спровоцировать эмоциональный шторм и уход в депрессию.";
+      } else if ((e1.Water >= 30 && e2.Water <= 15) || (e2.Water >= 30 && e1.Water <= 15)) {
+        waterComment = "💧 <strong>Вода: Чувствительность против сдержанности.</strong> Один партнер проживает глубокую гамму эмоций и нуждается в душевной теплоте, а второй кажется сухим, бесчувственным сухарем или слишком холодным логиком. Учитесь уважать чувства друг друга.";
+      } else if (e1.Water <= 15 && e2.Water <= 15) {
+        waterComment = "💧 <strong>Вода: Эмоциональная прохлада.</strong> Отношениям может не хватать нежности, эмпатии и заботы. Вы можете прекрасно сотрудничать разумом, но чувствовать душевную дистанцию. Добавляйте в союз больше открытых признаний и душевных жестов.";
+      } else {
+        waterComment = "💧 <strong>Вода: Гармоничный мир чувств.</strong> Достаточный уровень доверия и чуткости, позволяющий строить комфортные близкие отношения без лишней сентиментальности и драм.";
+      }
+      detailedElementsHtml += `<div style="background: rgba(255,255,255,0.02); padding: 0.9rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.04); font-size: 0.85rem; line-height: 1.5; color: var(--text-muted);">${waterComment}</div>`;
+
+      detailedElementsHtml += `</div>`;
+      html += detailedElementsHtml;
+
+      // Find dominant elements summary
       let maxEl1 = "Fire";
       let maxVal1 = -1;
       let maxEl2 = "Fire";
@@ -3618,7 +3679,7 @@ function setSummaryMode(mode) {
 
       html += `
         <div style="background: rgba(255,255,255,0.02); padding: 1.2rem; border-radius: 15px; border: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; line-height: 1.6; color: var(--text-muted); margin-top: 1rem;">
-          <h4 style="color: var(--accent-cyan); font-family: 'Outfit', sans-serif; margin-bottom: 0.5rem; font-size: 0.95rem;">📢 Анализ стихийного баланса</h4>
+          <h4 style="color: var(--accent-cyan); font-family: 'Outfit', sans-serif; margin-bottom: 0.5rem; font-size: 0.95rem;">🎯 Итоговый синергетический вывод</h4>
           Ведущая стихия у <strong>${p1Name}</strong> — <strong>${elementNamesRu[maxEl1] || maxEl1}</strong>, а у <strong>${p2Name}</strong> — <strong>${elementNamesRu[maxEl2] || maxEl2}</strong>.<br/><br/>
           ${compatibilityComment}
         </div>
